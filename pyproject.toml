@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "deepcon-gan"
+version = "0.1.0"
+description = ""
+authors = ["caglanakpinar <cakpinar23@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+imageio = "^2.35.1"
+tensorflow = "^2.17.0"
+matplotlib = "^3.9.2"
+keras = "^3.6.0"
+ipython = "^8.28.0"
+opencv-python = "^4.10.0.84"
+click = "^8.1.7"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
