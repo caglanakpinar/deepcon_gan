@@ -20,17 +20,14 @@ def cli():
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
-BUFFER_SIZE = 10000
-BATCH_SIZE = 128
+BUFFER_SIZE = 90000
+BATCH_SIZE = 256
 RESIZE_IMAGE_FRAME_SIZE = (64, 64)
-TRANSPOSE_ITERATOR = 4
-# unit will be 30
 UNIT = 32
 
-EPOCHS = 50
-noise_dim = 64
+EPOCHS = 100
+noise_dim = 100
 num_examples_to_generate = 1
-TRANSPOSE_ITERATOR = 2
 
 
 # (train_images, train_labels), (_, _) = keras.datasets.mnist.load_data()
@@ -107,11 +104,11 @@ TRANSPOSE_ITERATOR = 2
 def capture_images_and_train(
     name,
 ):
-    ci = CapturingImages(BATCH_SIZE, 32)
-    ci.capture_images(name=name, buffer_size=BUFFER_SIZE, frame_size=RESIZE_IMAGE_FRAME_SIZE)
+    ci = CapturingImages(64, 32)
+    # ci.capture_images(name=name, buffer_size=BUFFER_SIZE, frame_size=RESIZE_IMAGE_FRAME_SIZE)
     images = ci.read_images(name, RESIZE_IMAGE_FRAME_SIZE)
     model = DCGAN(
-        generator=make_generator_model(UNIT, BATCH_SIZE, RESIZE_IMAGE_FRAME_SIZE, noise_dim),
+        generator=make_generator_model(UNIT, RESIZE_IMAGE_FRAME_SIZE, noise_dim),
         generator_optimizer=generator_optimizer,
         generator_loss=generator_loss,
         discriminator=make_discriminator_model(UNIT, RESIZE_IMAGE_FRAME_SIZE),

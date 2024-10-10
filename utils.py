@@ -1,28 +1,8 @@
 import PIL
 import cv2
 from pathlib import Path
-import matplotlib.pyplot as plt
 import numpy as np
 from tensorflow import image
-
-
-# Display a single image using the epoch number
-def display_image(epoch_no):
-  return PIL.Image.open('image_at_epoch_{:04d}.png'.format(epoch_no))
-
-
-def generate_and_save_images(model, epoch, test_input, show=False):
-    # Notice `training` is set to False.
-    # This is so all layers run in inference mode (batchnorm).
-    predictions = model(test_input, training=False)
-    print(predictions[0].numpy())
-    print((255 - (predictions[0].numpy() * 255)).astype(int))
-    plt.imshow((255 - (predictions[0].numpy() * 255)).astype(int))
-    plt.axis('off')
-
-    plt.savefig('image_at_epoch_{:04d}.png'.format(epoch))
-    if show:
-        plt.show()
 
 
 class Paths:
@@ -74,7 +54,7 @@ class CapturingImages(Paths):
 
     @staticmethod
     def normalize_image(images):
-        return (255 - images) / 255
+        return  (images - 127.5) / 127.5
 
     @classmethod
     def read_images(cls, name, frame_size):
@@ -86,7 +66,7 @@ class CapturingImages(Paths):
                         cls.read_image(file_name),
                         [frame_size[0], frame_size[1]],
                         method=image.ResizeMethod.NEAREST_NEIGHBOR
-                    ).numpy()
+                    ).numpy().astype('float32')
                 )
                 for file_name in dir.iterdir()
             ]
