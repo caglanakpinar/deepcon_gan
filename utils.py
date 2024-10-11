@@ -17,6 +17,9 @@ class Paths:
 
     @property
     def create_train_checkpoint_directory(self):
+        folder_path = Path(__file__).absolute().parent / "training_checkpoints" / "ckpt"
+        if not folder_path.exists():
+            Path.mkdir(folder_path)
         return Path(__file__).absolute().parent / "training_checkpoints" / "ckpt"
 
 

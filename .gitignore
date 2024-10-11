@@ -5,3 +5,8 @@
 *.xml
 *.pyc
 *.jpg
+*.png
+*.pyc
+*.pyc
+/training_checkpoints
+*.pyc
