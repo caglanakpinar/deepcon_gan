@@ -2,7 +2,7 @@ import PIL
 import cv2
 from pathlib import Path
 import numpy as np
-from tensorflow import image
+from tensorflow import image, data
 
 
 class Paths:
@@ -15,19 +15,26 @@ class Paths:
             Path.mkdir(Path(__file__).absolute().parent / Path(name))
         return file_path
 
-    @property
-    def create_train_checkpoint_directory(self):
-        folder_path = Path(__file__).absolute().parent / "training_checkpoints" / "ckpt"
+    def create_train_checkpoint_directory(self, name):
+        folder_path = Path(__file__).absolute().parent / f"training_checkpoints_{name.upper()}" / "ckpt" / name
         if not folder_path.exists():
+            Path.mkdir(Path(__file__).absolute().parent / f"training_checkpoints_{name.upper()}")
+            Path.mkdir(Path(__file__).absolute().parent / f"training_checkpoints_{name.upper()}" / "ckpt")
             Path.mkdir(folder_path)
-        return Path(__file__).absolute().parent / "training_checkpoints" / "ckpt"
+        return folder_path
 
 
 class CapturingImages(Paths):
-    def __init__(self, batch_size=128, dimension=30, images=None):
+    def __init__(self, batch_size=128, images=None):
         self.batch_size = batch_size
-        self.dimension = dimension
         self.images = images
+
+    def create_tfds(self):
+        self.images = (
+            data.Dataset
+            .from_tensor_slices(self.images)
+            .shuffle(self.images.shape[0]).batch(self.batch_size)
+        )
 
     def capture_images(self, name, buffer_size, frame_size: tuple):
         vidcap = cv2.VideoCapture(0)

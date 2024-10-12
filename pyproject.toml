@@ -21,6 +21,7 @@ pre-commit = "^4.0.1"
 flake8 = "^7.1.1"
 black = "^24.10.0"
 jupyter = "^1.1.1"
+keras-tuner = "^1.4.7"
 
 [build-system]
 requires = ["poetry-core"]
