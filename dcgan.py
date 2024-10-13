@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import keras
 import numpy as np
 import tensorflow as tf
@@ -32,6 +34,19 @@ class DCGAN(Paths):
         self.seed = tf.random.normal([1, self.noise_dim])
         self.epochs = epochs
         self.epoch_loss_metric = keras.metrics.Sum()
+
+    @classmethod
+    def read_checkpoint(cls, **kwargs):
+        name = kwargs.get('name')
+        checkpoint_path = Path(__file__).absolute().parent / f"training_checkpoints_{name.upper()}"
+        if not checkpoint_path.exists():
+            raise f"{checkpoint_path} - not found"
+        dcgan = DCGAN(**kwargs)
+        latest = tf.train.latest_checkpoint(dcgan.create_train_checkpoint_directory(name))
+        dcgan.checkpoint.restore(
+            latest
+        )
+        return dcgan
 
     @property
     def checkpoint(self) -> tf.train.Checkpoint:
@@ -92,7 +107,7 @@ class DCGAN(Paths):
         plt.imshow(((predictions[0].numpy() * 127.5) + 127.5).astype(int))
         plt.axis('off')
 
-        plt.savefig(self.create_train_checkpoint_directory(self.name) / 'image_at_epoch_{:04d}.png'.format(epoch))
+        plt.savefig(self.create_train_epoch_image_save(self.name) / 'image_at_epoch_{:04d}.png'.format(epoch))
         if show:
             plt.show()
 

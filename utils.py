@@ -16,10 +16,16 @@ class Paths:
         return file_path
 
     def create_train_checkpoint_directory(self, name):
-        folder_path = Path(__file__).absolute().parent / f"training_checkpoints_{name.upper()}" / "ckpt" / name
+        folder_path = Path(__file__).absolute().parent / f"{self.checkpoint_dir}_{name.upper()}"
         if not folder_path.exists():
-            Path.mkdir(Path(__file__).absolute().parent / f"training_checkpoints_{name.upper()}")
-            Path.mkdir(Path(__file__).absolute().parent / f"training_checkpoints_{name.upper()}" / "ckpt")
+            Path.mkdir(Path(__file__).absolute().parent / f"{self.checkpoint_dir}_{name.upper()}")
+        return folder_path
+
+    def create_train_epoch_image_save(self, name):
+        folder_path = Path(__file__).absolute().parent / f"{self.checkpoint_dir}_{name.upper()}" / "ckpt"
+        if not folder_path.exists():
+            Path.mkdir(Path(__file__).absolute().parent / f"{self.checkpoint_dir}_{name.upper()}")
+            Path.mkdir(Path(__file__).absolute().parent / f"{self.checkpoint_dir}_{name.upper()}" / "ckpt")
             Path.mkdir(folder_path)
         return folder_path
 
