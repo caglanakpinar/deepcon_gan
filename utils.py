@@ -30,13 +30,55 @@ class Paths:
         return folder_path
 
 
+@dataclass
+class Params(Paths):
+    batch_size: int = 32
+    epochs: int = 5
+    lr: float | list[float] = 1e-4
+
+    @staticmethod
+    def default_parameters():
+        return Params.__dict__.get('__annotations__').keys()
+
+    @classmethod
+    def get(cls, p):
+        assert getattr(cls, p, None) is not None, f"{p} - is not available at train parameters .yaml file"
+        return getattr(cls, p)
+
+    @classmethod
+    def set(cls, p, value):
+        setattr(cls, p, value)
+        return cls
+
+    @classmethod
+    def read_from_config(cls, trainer_config_path, **kwargs):
+        _params = cls.read_yaml(cls.parent_dir / trainer_config_path)
+        parameters = Params()
+        for p, value in _params.items():
+            parameters = cls.set(p, value)
+        if kwargs is not None:
+            for p, value in kwargs.items():
+                parameters = cls.set(p, value)
+        return parameters
+
+    @staticmethod
+    def read_yaml(folder):
+        """
+        :param folder: file path ending with .yaml format
+        :return: dictionary
+        """
+        with open(f"{str(folder)}.yaml" if str(folder).split(".")[-1] not in ['yaml', 'yml'] else folder) as file:
+            docs = yaml.full_load(file)
+        return docs
+
+
 class CapturingImages(Paths):
-    def __init__(self, name, batch_size, image_size, buffer_size, images=None):
-        self.batch_size = batch_size
-        self.image_size = image_size
-        self.buffer_size = buffer_size
+    def __init__(self, params: Params, images=None):
+        self.batch_size = params.get("batch_size")
+        self.image_size = params.get("image_size")
+        self.buffer_size = params.get("buffer_size")
         self.images = images
-        self.image_directory = self.create_image_directory(name)
+        self.image_directory = self.create_image_directory(params.get("name"))
 
     def create_tfds(self):
         self.images = (
@@ -73,61 +115,28 @@ class CapturingImages(Paths):
 
     @staticmethod
     def normalize_image(images):
-        return  (images - 127.5) / 127.5
+        return (images - 127.5) / 127.5
 
     @classmethod
-    def read_images(cls, name, batch_size, image_size, buffer_size):
-        ci = CapturingImages(name, batch_size, image_size, buffer_size)
-        if not (ci.parent_dir / name).exists():
-            ci.capture_images(name=name, buffer_size=buffer_size, image_size=image_size)
+    def read_images(
+            cls,
+            params: Params
+    ):
+        ci = CapturingImages(params)
+        if not (ci.parent_dir / params.get("name")).exists():
+            ci.capture_images(name=params.get("name"), buffer_size=params.get("buffer_size"), image_size=params.get("image_size"))
         data = np.array(
             [
                 ci.normalize_image(
                     image.resize(
                         ci.read_image(file_name),
-                        [image_size[0], image_size[1]],
+                        [params.get("image_size")[0], params.get("image_size")[1]],
                         method=image.ResizeMethod.NEAREST_NEIGHBOR
                     ).numpy().astype('float32')
                 )
                 for file_name in ci.image_directory.iterdir()
             ]
         )
-        ci.images = data.reshape(data.shape[0], image_size[0], image_size[1], image_size[2]).astype('float32')
+        ci.images = data.reshape(data.shape[0], params.get("image_size")[0], params.get("image_size")[1], params.get("image_size")[2]).astype('float32')
         ci.create_tfds()
         return ci
-
-@dataclass
-class BaseParams:
-    batch_size: int
-    epochs: int
-    lr: float | list[float] = 1e-4
-
-    @staticmethod
-    def default_parameters():
-        return BaseParams.__dict__.get('__annotations__').keys()
-
-
-
-class Params(BaseParams, Paths):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-    @classmethod
-    def read_from_config(cls, config_name, config_path=""):
-        _params = cls.read_yaml(cls.parent_dir / config_path / config_name)
-        parameters = Params(**{p: value for p, value in  _params.items() if p in cls.default_parameters()})
-        for p, value in _params.items():
-            if p  not in cls.default_parameters():
-                setattr(parameters, p, value)
-        return parameters
-
-    @staticmethod
-    def read_yaml(folder):
-        """
-        :param folder: file path ending with .yaml format
-        :return: dictionary
-        """
-        with open(f"{str(folder)}.yaml" if str(folder).split(".")[-1] not in ['yaml', 'yml'] else folder) as file:
-            docs = yaml.full_load(file)
-        return docs
-

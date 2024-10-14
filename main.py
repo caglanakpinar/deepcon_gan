@@ -15,32 +15,19 @@ def cli():
 
 @cli.command()
 @click.option(
-    "--name",
-    default="caglan",
-    help="folder name to capture images"
+    "--trainer_config_path",
+    default="configs",
+    help="where trainer .yaml is being stored"
 )
 def capture_images_and_train(
-    name,
+    trainer_config_path
 ):
-    params = Params.read_from_config("params", "configs")
+    params = Params.read_from_config(trainer_config_path)
     ci = CapturingImages.read_images(
-        name=name, batch_size=BATCH_SIZE, image_size=RESIZE_IMAGE_FRAME_SIZE, buffer_size=BUFFER_SIZE
+        params
     )
     model = DCGAN(
-        name=name,
-        batch_size=BATCH_SIZE,
-        epochs=EPOCHS,
-        noise_dimension=NOISE_DIMENSION,
-        unit=UNIT,
-        frame_size=RESIZE_IMAGE_FRAME_SIZE,
-        generator_layer_iterator=GENERATOR_LAYER_ITERATOR,
-        discriminator_layer_iterator= DISCRIMINATOR_LAYER_ITERATOR,
-        kernel=KERNEL,
-        generator_strides=GENERATOR_STRIDE,
-        discriminator_strides=DISCRIMINATOR_STRIDE,
-        dropout_ratio=DROPOUT_RATIO,
-        lr_generator=LR_GENERATOR,
-        lr_discriminator=LR_DISCRIMINATOR
+        params
     )
     model.train(ci.images)
 
@@ -51,33 +38,18 @@ def cli():
 
 @cli.command()
 @click.option(
-    "--name",
-    default="caglan",
-    help="folder name to capture images"
+    "--trainer_config_path",
+    default="configs",
+    help="where trainer .yaml is being stored"
 )
 def train_with_checkpoint(
-    name,
+    trainer_config_path,
 ):
-    params = Params.read_from_config("params", "configs")
+    params = Params.read_from_config(trainer_config_path)
     ci = CapturingImages.read_images(
-        name=name, batch_size=BATCH_SIZE, image_size=RESIZE_IMAGE_FRAME_SIZE, buffer_size=BUFFER_SIZE
+        params
     )
-    model = DCGAN.read_checkpoint(
-        name=name,
-        batch_size=BATCH_SIZE,
-        epochs=EPOCHS,
-        noise_dimension=NOISE_DIMENSION,
-        unit=UNIT,
-        frame_size=RESIZE_IMAGE_FRAME_SIZE,
-        generator_layer_iterator=GENERATOR_LAYER_ITERATOR,
-        discriminator_layer_iterator= DISCRIMINATOR_LAYER_ITERATOR,
-        kernel=KERNEL,
-        generator_strides=GENERATOR_STRIDE,
-        discriminator_strides=DISCRIMINATOR_STRIDE,
-        dropout_ratio=DROPOUT_RATIO,
-        lr_generator=LR_GENERATOR,
-        lr_discriminator=LR_DISCRIMINATOR
-    )
+    model = DCGAN.read_checkpoint(params)
     model.train(ci.images)
 
 

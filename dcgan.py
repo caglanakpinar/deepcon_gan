@@ -10,38 +10,36 @@ import matplotlib.pyplot as plt
 import keras_tuner
 from keras_tuner import HyperParameters
 
-from utils import Paths
+from utils import Paths, Params
 from models import Generator, cross_entropy, Discriminator
 
 
 class DCGAN(Paths):
     def __init__(
         self,
-        name,
-        batch_size: int,
-        epochs: int,
-        **kwargs
+        params: Params
     ):
-        self.name = name
-        self.generator = Generator.make_model(**kwargs)
-        self.discriminator = Discriminator.make_model(**kwargs)
-        self.generator_optimizer = optimizers.Adam(kwargs.get('lr_generator'))
-        self.discriminator_optimizer = optimizers.Adam(kwargs.get('lr_discriminator'))
+        self.params: Params = params
+        self.name = params.get('name')
+        self.generator = Generator.make_model(params)
+        self.discriminator = Discriminator.make_model(params)
+        self.generator_optimizer = optimizers.Adam(params.get('lr_generator'))
+        self.discriminator_optimizer = optimizers.Adam(params.get('lr_discriminator'))
         self.generator_loss = Generator.loss
         self.discriminator_loss = Discriminator.loss
-        self.noise_dim = kwargs.get('noise_dimension')
-        self.batch_size = batch_size
+        self.noise_dim = params.get('noise_dimension')
+        self.batch_size = params.get('batch_size')
         self.seed = tf.random.normal([1, self.noise_dim])
-        self.epochs = epochs
+        self.epochs = params.get('epochs')
         self.epoch_loss_metric = keras.metrics.Sum()
 
+
     @classmethod
-    def read_checkpoint(cls, **kwargs):
-        name = kwargs.get('name')
-        checkpoint_path = cls.checkpoint_directory(name)
+    def read_checkpoint(cls, params: Params):
+        checkpoint_path = cls.checkpoint_directory(params.get('name'))
         if not checkpoint_path.exists():
             raise f"{checkpoint_path} - not found"
-        dcgan = DCGAN(**kwargs)
+        dcgan = DCGAN(params)
         latest = tf.train.latest_checkpoint(checkpoint_path)
         dcgan.checkpoint.restore(
             latest

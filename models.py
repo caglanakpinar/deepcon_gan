@@ -4,6 +4,8 @@ from keras import *
 import tensorflow as tf
 from tensorflow.python.data.experimental.ops.data_service_ops import distribute
 
+from utils import Params
+
 cross_entropy = losses.BinaryCrossentropy(from_logits=True)
 generator_optimizer = optimizers.Adam(1e-4)
 discriminator_optimizer = optimizers.Adam(1e-4)
@@ -22,21 +24,25 @@ def discriminator_loss(real_output, fake_output):
 
 
 class Generator:
-    def __init__(self, unit, frame_size, noise_dimension, generator_layer_iterator, kernel, generator_strides: list[int]=[1, 2, 2]):
-        self.unit = unit
-        self.frame_size = frame_size
-        self.noise_dimension = noise_dimension
-        self.iteration = generator_layer_iterator
+    def __init__(
+            self,
+            params: Params,
+    ):
+        self.params = params
+        self.unit = params.get('unit')
+        self.frame_size = params.get('image_size')
+        self.noise_dimension = params.get('noise_dimension')
+        self.iteration = params.get('generator_layer_iterator')
         self.model: Sequential = Sequential()
-        self.divide = 2**generator_layer_iterator
-        self.kernel = kernel
-        self.layer_strides = generator_strides
+        self.divide = 2**params.get('generator_layer_iterator')
+        self.kernel = params.get('kernel')
+        self.layer_strides = params.get('generator_stride')
         self.loss_function = losses.BinaryCrossentropy(from_logits=True)
 
     @classmethod
-    def  make_model(cls, unit, frame_size, noise_dimension, generator_layer_iterator, kernel, generator_strides: list[int]=[1, 2, 2], **kwargs):
+    def  make_model(cls, params: Params):
         generator = Generator(
-            unit, frame_size, noise_dimension, generator_layer_iterator, kernel, generator_strides
+            params
         )
         generator.build()
         print(generator.model.summary())
@@ -110,22 +116,26 @@ def make_generator_model(unit, frame_size, noise_dimension) -> Sequential:
 
 
 class Discriminator:
-    def __init__(self, unit, frame_size, noise_dimension, discriminator_layer_iterator, kernel, dropout_ratio, discriminator_strides):
-        self.unit = unit
-        self.frame_size = frame_size
-        self.noise_dimension = noise_dimension
-        self.iteration = discriminator_layer_iterator
+    def __init__(
+            self,
+            params: Params,
+    ):
+        self.params = params
+        self.unit = params.get('unit')
+        self.frame_size = params.get('image_size')
+        self.noise_dimension = params.get('noise_dimension')
+        self.iteration = params.get('discriminator_layer_iterator')
         self.model: Sequential = Sequential()
-        self.divide = 2**discriminator_layer_iterator
-        self.kernel = kernel
-        self.stride = discriminator_strides
-        self.dropout_ratio = dropout_ratio
+        self.divide = 2**params.get('discriminator_layer_iterator')
+        self.kernel = params.get('kernel')
+        self.stride = params.get('discriminator_stride')
+        self.dropout_ratio = params.get('dropout_ratio')
         self.loss_function = losses.BinaryCrossentropy(from_logits=True)
 
     @classmethod
-    def make_model(cls, unit, frame_size, noise_dimension, discriminator_layer_iterator, kernel, dropout_ratio, discriminator_strides, **kwargs):
+    def make_model(cls, params: Params):
         discriminator = Discriminator(
-            unit, frame_size, noise_dimension, discriminator_layer_iterator, kernel, dropout_ratio, discriminator_strides
+            params
         )
         discriminator.build()
         print(discriminator.model.summary())
