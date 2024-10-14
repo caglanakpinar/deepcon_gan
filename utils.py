@@ -9,7 +9,7 @@ from tensorflow import image, data
 
 
 class Paths:
-    checkpoint_dir = './training_checkpoints'
+    checkpoint_dir = 'training_checkpoints'
     parent_dir = Path(__file__).absolute().parent
 
     def create_image_directory(self, name):
@@ -18,17 +18,14 @@ class Paths:
             Path.mkdir(self.parent_dir/ Path(name))
         return file_path
 
-    def create_train_checkpoint_directory(self, name):
-        folder_path = self.parent_dir / f"{self.checkpoint_dir}_{name.upper()}"
-        if not folder_path.exists():
-            Path.mkdir(self.parent_dir / f"{self.checkpoint_dir}_{name.upper()}")
-        return folder_path
+    @staticmethod
+    def checkpoint_directory(name) -> Path:
+        return Paths.parent_dir / f"{Paths.checkpoint_dir}_{name.upper()}"
 
     def create_train_epoch_image_save(self, name):
-        folder_path = self.parent_dir / f"{self.checkpoint_dir}_{name.upper()}" / "ckpt"
+        folder_path = self.checkpoint_directory(name) / "ckpt"
         if not folder_path.exists():
-            Path.mkdir(self.parent_dir / f"{self.checkpoint_dir}_{name.upper()}")
-            Path.mkdir(self.parent_dir / f"{self.checkpoint_dir}_{name.upper()}" / "ckpt")
+            Path.mkdir(self.checkpoint_directory(name))
             Path.mkdir(folder_path)
         return folder_path
 

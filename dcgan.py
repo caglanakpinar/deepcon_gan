@@ -38,11 +38,11 @@ class DCGAN(Paths):
     @classmethod
     def read_checkpoint(cls, **kwargs):
         name = kwargs.get('name')
-        checkpoint_path = Path(__file__).absolute().parent / f"training_checkpoints_{name.upper()}"
+        checkpoint_path = cls.checkpoint_directory(name)
         if not checkpoint_path.exists():
             raise f"{checkpoint_path} - not found"
         dcgan = DCGAN(**kwargs)
-        latest = tf.train.latest_checkpoint(dcgan.create_train_checkpoint_directory(name))
+        latest = tf.train.latest_checkpoint(checkpoint_path)
         dcgan.checkpoint.restore(
             latest
         )
@@ -90,7 +90,7 @@ class DCGAN(Paths):
                 display.clear_output(wait=True)
                 # Save the model every 15 epochs
                 if (epoch + 1) % 15 == 0:
-                    self.checkpoint.save(file_prefix=self.create_train_checkpoint_directory(self.name))
+                    self.checkpoint.save(file_prefix=self.checkpoint_directory(self.name))
                 print('Time for epoch {} is {} sec'.format(epoch + 1, time.time() - start))
                 self.generate_and_save_images(
                     epoch + 1,
