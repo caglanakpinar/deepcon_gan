@@ -118,7 +118,7 @@ class CapturingImages(Paths):
         return (images - 127.5) / 127.5
 
     @classmethod
-    def read_images(
+    def read(
             cls,
             params: Params
     ):
