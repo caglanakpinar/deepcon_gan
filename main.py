@@ -2,7 +2,6 @@ import click
 import ssl
 
 from dcgan import DCGAN
-from models import *
 from utils import *
 from configs import *
 
@@ -23,11 +22,10 @@ def cli():
 def capture_images_and_train(
     name,
 ):
-    ci = CapturingImages(BATCH_SIZE)
-    if not (Path(__file__).absolute().parent / name).exists():
-        ci.capture_images(name=name, buffer_size=BUFFER_SIZE, frame_size=RESIZE_IMAGE_FRAME_SIZE)
-    ci = ci.read_images(name, RESIZE_IMAGE_FRAME_SIZE)
-    ci.create_tfds()
+    params = Params.read_from_config("params", "configs")
+    ci = CapturingImages.read_images(
+        name=name, batch_size=BATCH_SIZE, image_size=RESIZE_IMAGE_FRAME_SIZE, buffer_size=BUFFER_SIZE
+    )
     model = DCGAN(
         name=name,
         batch_size=BATCH_SIZE,
@@ -60,11 +58,10 @@ def cli():
 def train_with_checkpoint(
     name,
 ):
-    ci = CapturingImages(BATCH_SIZE)
-    if not (Path(__file__).absolute().parent / name).exists():
-        ci.capture_images(name=name, buffer_size=BUFFER_SIZE, frame_size=RESIZE_IMAGE_FRAME_SIZE)
-    ci = ci.read_images(name, RESIZE_IMAGE_FRAME_SIZE)
-    ci.create_tfds()
+    params = Params.read_from_config("params", "configs")
+    ci = CapturingImages.read_images(
+        name=name, batch_size=BATCH_SIZE, image_size=RESIZE_IMAGE_FRAME_SIZE, buffer_size=BUFFER_SIZE
+    )
     model = DCGAN.read_checkpoint(
         name=name,
         batch_size=BATCH_SIZE,

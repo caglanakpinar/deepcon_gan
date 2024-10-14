@@ -1,0 +1,20 @@
+name: caglan
+epochs: 1000
+buffer_size: 35000
+batch_size: 256
+image_size: !!python/tuple [64, 64, 3]
+unit: 64
+generator_layer_iterator: 3
+discriminator_layer_iterator: 4
+generator_stride:
+  - 1
+  - 2
+  - 2
+  - 2
+discriminator_stride: 2
+kernel: 5
+dropout_ratio: 0.3
+lr_generator: 1e-4
+lr_discriminator: 1e-4
+noise_dimension: 100
+num_example_to_generate: 1
