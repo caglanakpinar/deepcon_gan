@@ -1,7 +1,4 @@
-from pathlib import Path
-
 import keras
-import numpy as np
 import tensorflow as tf
 from keras import *
 import time
@@ -86,9 +83,9 @@ class DCGAN(Paths):
             else:
                 # Produce images for the GIF as you go
                 display.clear_output(wait=True)
-                # Save the model every 15 epochs
-                if (epoch + 1) % 15 == 0:
-                    self.checkpoint.save(file_prefix=self.checkpoint_directory(self.name))
+                # Save the model every 5 epochs
+                if (epoch + 1) % 5 == 0:
+                    self.checkpoint.save(file_prefix=self.checkpoint_prefix_directory(self.name))
                 print('Time for epoch {} is {} sec'.format(epoch + 1, time.time() - start))
                 self.generate_and_save_images(
                     epoch + 1,
@@ -98,7 +95,6 @@ class DCGAN(Paths):
 
     def get_best_epoch_loss(self):
         return float(self.epoch_loss_metric.result().numpy())
-
 
     def generate_and_save_images(self, epoch, test_input, show=False):
         predictions = self.generator(test_input, training=False)

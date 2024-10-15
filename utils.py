@@ -10,6 +10,7 @@ from tensorflow import image, data
 
 class Paths:
     checkpoint_dir = 'training_checkpoints'
+    checkpoint_prefix = "ckpt"
     parent_dir = Path(__file__).absolute().parent
 
     def create_image_directory(self, name):
@@ -22,8 +23,11 @@ class Paths:
     def checkpoint_directory(name) -> Path:
         return Paths.parent_dir / f"{Paths.checkpoint_dir}_{name.upper()}"
 
+    def checkpoint_prefix_directory(self, name):
+        return self.checkpoint_directory(name) /self.checkpoint_prefix
+
     def create_train_epoch_image_save(self, name):
-        folder_path = self.checkpoint_directory(name) / "ckpt"
+        folder_path = self.checkpoint_prefix_directory(name)
         if not folder_path.exists():
             Path.mkdir(self.checkpoint_directory(name))
             Path.mkdir(folder_path)
@@ -45,6 +49,7 @@ class Params(Paths):
             setattr(self, p, value)
         if kwargs is not None:
             for p, value in kwargs.items():
+                setattr(self, p, value)
 
     @staticmethod
     def read_yaml(folder):
