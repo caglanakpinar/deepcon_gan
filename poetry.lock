@@ -702,19 +702,21 @@ name = "dl-ml-ops"
 version = "0.1.0"
 description = ""
 optional = false
-python-versions = ">=3.11,<4.0"
-files = [
-    {file = "dl_ml_ops-0.1.0-py3-none-any.whl", hash = "sha256:26820d3a6a1512ea8fa30da1f748ee253161e3cfb31e72f9e6244b76cc37cc35"},
-]
+python-versions = "^3.11"
+files = []
+develop = false
 
 [package.dependencies]
-click = ">=8.1.7,<9.0.0"
-pyyaml = ">=6.0.2,<7.0.0"
-tensorflow = ">=2.17.0,<3.0.0"
+click = "^8.1.7"
+keras-tuner = "^1.4.7"
+pyyaml = "^6.0.2"
+tensorflow = "^2.17.0"
 
 [package.source]
-type = "file"
-url = "dl_ml_ops-0.1.0-py3-none-any.whl"
+type = "git"
+url = "https://github.com/caglanakpinar/dl_ml_ops.git"
+reference = "HEAD"
+resolved_reference = "97748457d7e4b48f2dfe3a9c97015da0ad33241f"
 
 [[package]]
 name = "executing"
@@ -3770,4 +3772,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "c1e8a659d212376030769804a6d342946a03223d91bd946a8c9ff97d7c5dc168"
+content-hash = "dbf925649e4382e970c8566cfe9212fe6f3324b0c8930925a994fa6757b4d355"
