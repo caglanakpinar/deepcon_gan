@@ -1,5 +1,6 @@
 name: caglan
-epochs: 1000
+epochs: 20
+checkpoint_save_epoch: 5
 buffer_size: 35000
 batch_size: 256
 image_size: !!python/tuple [64, 64, 3]

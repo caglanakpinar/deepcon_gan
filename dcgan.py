@@ -1,3 +1,5 @@
+from abc import abstractmethod
+
 import keras
 import tensorflow as tf
 from keras import *
@@ -5,7 +7,7 @@ import time
 from IPython import display
 import matplotlib.pyplot as plt
 import keras_tuner
-from keras_tuner import HyperParameters
+from keras_tuner import HyperParameters, RandomSearch
 
 from utils import Paths, Params
 from models import Generator, cross_entropy, Discriminator
@@ -28,8 +30,8 @@ class DCGAN(Paths):
         self.batch_size = params.get('batch_size')
         self.seed = tf.random.normal([1, self.noise_dim])
         self.epochs = params.get('epochs')
+        self.checkpoint_save_epoch = params.get('checkpoint_save_epoch')
         self.epoch_loss_metric = keras.metrics.Sum()
-
 
     @classmethod
     def read_checkpoint(cls, params: Params):
@@ -77,14 +79,14 @@ class DCGAN(Paths):
                 self.train_step(image_batch)
             if tunable:
                 for images in val_dataset:
-                    generated_image = self.generator(self.seed, training=False)
+                    generated_image = self.generator(tf.random.normal([images.shape[0], self.noise_dim]), training=False)
                     loss = cross_entropy(images, generated_image)
                     self.epoch_loss_metric.update_state(loss)
             else:
                 # Produce images for the GIF as you go
                 display.clear_output(wait=True)
-                # Save the model every 5 epochs
-                if (epoch + 1) % 5 == 0:
+                # Save the model every x epochs - it is in params.yaml
+                if (epoch + 1) % self.checkpoint_save_epoch == 0:
                     self.checkpoint.save(file_prefix=self.checkpoint_prefix_directory(self.name))
                 print('Time for epoch {} is {} sec'.format(epoch + 1, time.time() - start))
                 self.generate_and_save_images(
@@ -106,25 +108,64 @@ class DCGAN(Paths):
             plt.show()
 
 
-class HyperDCGAN(keras_tuner.HyperModel):
+class BaseHyperModel(keras_tuner.HyperModel, Paths):
+    temp_model = None
+    temp_train_args: Params = None
+    temp_hyper_params: Params = None
+    search_params: Params = None
+
+    @staticmethod
+    def get_hyper_parameters():
+        return HyperParameters()
+
     def set_model(self, model):
         setattr(self, 'temp_model', model)
 
-    def set_train_arguments(self, args):
+    def set_train_params(self, args):
         setattr(self, 'temp_train_args', args)
 
-    def set_model_arguments(self, hyper_params):
+    def set_hyper_params(self, hyper_params):
         setattr(self, 'temp_hyper_params', hyper_params)
 
+    @abstractmethod
     def build(self, hp: HyperParameters):
-        _args = {
-            param: hp.Choice(param, value)
-             for param, value in getattr(self, 'temp_hyper_params').items()
-        }
-        return getattr(self, 'temp_model')(
-            **_args
-        )
+        NotImplementedError()
 
-    def fit(self, fp, model: DCGAN, **kwargs):
-        model.train(train_dataset=kwargs['x'], val_dataset=kwargs['validation_data'], tunable=True)
-        return model.get_best_epoch_loss()
+    @abstractmethod
+    def fit(self, fp, model: keras.Model, **kwargs):
+        NotImplementedError()
+
+    def random_search(self, model: keras_tuner.HyperModel, x, y, validation_data, max_trials):
+        tuner = RandomSearch(
+            model,
+            objective='loss',
+            max_trials=max_trials,
+            project_dir=self.parent_dir / self.tuning_project_dir,
+        )
+        tuner.search(x=x, y=x, validation_data=validation_data)
+        self.temp_train_args.store_params(tuner.get_best_hyperparameters()[0].values)
+
+
+class HyperDCGAN(BaseHyperModel):
+    def build(self, hp: HyperParameters):
+        _selection_args = {
+            p: (
+                hp.Choice(p, getattr(self.temp_hyper_params, p))
+                if type(getattr(self.temp_hyper_params, p)) == list
+                else getattr(self.temp_hyper_params, p)
+            )
+             for p in self.temp_hyper_params.parameter_keys
+        }
+        _args = {
+            p: (_selection_args.get(p) if p in _selection_args.keys() else getattr(self.temp_train_args, p))
+            for p in self.temp_train_args.parameter_keys
+        }
+        self.search_params = Params(trainer_arguments=_args)
+        return keras.Model()
+
+    def fit(self, fp, model: keras.Model, **kwargs):
+        _model = self.temp_model(self.search_params)
+        _model.train(train_dataset=kwargs['x'], val_dataset=kwargs['validation_data'], tunable=True)
+        return {
+            'loss': _model.get_best_epoch_loss()
+        }

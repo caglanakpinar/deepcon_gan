@@ -14,6 +14,8 @@ keras = "^3.6.0"
 ipython = "^8.28.0"
 opencv-python = "^4.10.0.84"
 click = "^8.1.7"
+hydra-core = "^1.3.2"
+dl-ml-ops = {path = "dl_ml_ops-0.1.0-py3-none-any.whl"}
 
 
 [tool.poetry.group.dev.dependencies]

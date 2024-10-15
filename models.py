@@ -45,7 +45,6 @@ class Generator:
             params
         )
         generator.build()
-        print(generator.model.summary())
         return generator.model
 
     @staticmethod
@@ -84,37 +83,6 @@ class Generator:
         )
 
 
-def make_generator_model(unit, frame_size, noise_dimension) -> Sequential:
-    model = Sequential()
-    model.add(layers.Input((noise_dimension, )))
-    model.add(layers.Dense(int(frame_size[0]/8)*int(frame_size[0]/8)*unit, use_bias=False))
-    model.add(layers.BatchNormalization())
-    model.add(layers.LeakyReLU())
-
-    model.add(layers.Reshape((int(frame_size[0]/8), int(frame_size[0]/8), unit)))
-    assert model.output_shape == (None, int(frame_size[0]/8), int(frame_size[0]/8), unit)  # Note: None is the batch size
-
-    model.add(layers.Conv2DTranspose(int(unit/2), (5, 5), strides=(1, 1), padding='same', use_bias=False))
-    assert model.output_shape == (None, int(frame_size[0]/8), int(frame_size[0]/8), int(unit/2))
-    model.add(layers.BatchNormalization())
-    model.add(layers.LeakyReLU())
-
-    model.add(layers.Conv2DTranspose(int(unit/4), (5, 5), strides=(2, 2), padding='same', use_bias=False))
-    assert model.output_shape == (None, int(frame_size[0]/4), int(frame_size[0]/4), int(unit/4))
-    model.add(layers.BatchNormalization())
-    model.add(layers.LeakyReLU())
-
-    model.add(layers.Conv2DTranspose(int(unit/8), (5, 5), strides=(2, 2), padding='same', use_bias=False))
-    assert model.output_shape == (None, int(frame_size[0]/2), int(frame_size[0]/2), int(unit/8))
-    model.add(layers.BatchNormalization())
-    model.add(layers.LeakyReLU())
-
-    model.add(layers.Conv2DTranspose(3, kernel_size=(5, 5), strides=(2, 2), padding='same', use_bias=False, activation="tanh"))
-    assert model.output_shape == (None, frame_size[0], frame_size[1], 3)
-    model.summary()
-    return model
-
-
 class Discriminator:
     def __init__(
             self,
@@ -138,7 +106,6 @@ class Discriminator:
             params
         )
         discriminator.build()
-        print(discriminator.model.summary())
         return discriminator.model
 
     @staticmethod
@@ -166,28 +133,3 @@ class Discriminator:
             self.l_relu_dropout()
         self.model.add(layers.Flatten())
         self.model.add(layers.Dense(1))
-
-
-def make_discriminator_model(unit, frame_size) -> Sequential:
-    model = Sequential()
-    model.add(layers.Conv2D(unit, (5, 5), strides=(2, 2), padding='same',
-                                     input_shape=[frame_size[0], frame_size[1], 3]))
-    model.add(layers.LeakyReLU())
-    model.add(layers.Dropout(0.3))
-
-    model.add(layers.Conv2D(int(unit*2), (5, 5), strides=(2, 2), padding='same'))
-    model.add(layers.LeakyReLU())
-    model.add(layers.Dropout(0.3))
-
-    model.add(layers.Conv2D(int(unit*4), (5, 5), strides=(2, 2), padding='same'))
-    model.add(layers.LeakyReLU())
-    model.add(layers.Dropout(0.3))
-
-    model.add(layers.Conv2D(int(unit*8), (5, 5), strides=(2, 2), padding='same'))
-    model.add(layers.LeakyReLU())
-    model.add(layers.Dropout(0.3))
-
-    model.add(layers.Flatten())
-    model.add(layers.Dense(1))
-    model.summary()
-    return model
