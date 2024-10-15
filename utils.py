@@ -30,36 +30,21 @@ class Paths:
         return folder_path
 
 
-@dataclass
 class Params(Paths):
-    batch_size: int = 32
-    epochs: int = 5
-    lr: float | list[float] = 1e-4
-
-    @staticmethod
-    def default_parameters():
-        return Params.__dict__.get('__annotations__').keys()
+    def __init__(self, trainer_config_path, **kwargs):
+        self.read_from_config(trainer_config_path, **kwargs)
 
     @classmethod
     def get(cls, p):
         assert getattr(cls, p, None) is not None, f"{p} - is not available at train parameters .yaml file"
         return getattr(cls, p)
 
-    @classmethod
-    def set(cls, p, value):
-        setattr(cls, p, value)
-        return cls
-
-    @classmethod
-    def read_from_config(cls, trainer_config_path, **kwargs):
-        _params = cls.read_yaml(cls.parent_dir / trainer_config_path)
-        parameters = Params()
+    def read_from_config(self, trainer_config_path, **kwargs):
+        _params = self.read_yaml(self.parent_dir / trainer_config_path)
         for p, value in _params.items():
-            parameters = cls.set(p, value)
+            setattr(self, p, value)
         if kwargs is not None:
             for p, value in kwargs.items():
-                parameters = cls.set(p, value)
-        return parameters
 
     @staticmethod
     def read_yaml(folder):
