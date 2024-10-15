@@ -38,10 +38,9 @@ class Params(Paths):
     def __init__(self, trainer_config_path, **kwargs):
         self.read_from_config(trainer_config_path, **kwargs)
 
-    @classmethod
-    def get(cls, p):
-        assert getattr(cls, p, None) is not None, f"{p} - is not available at train parameters .yaml file"
-        return getattr(cls, p)
+    def get(self, p):
+        assert getattr(self, p, None) is not None, f"{p} - is not available at train parameters .yaml file"
+        return getattr(self, p)
 
     def read_from_config(self, trainer_config_path, **kwargs):
         _params = self.read_yaml(self.parent_dir / trainer_config_path)
