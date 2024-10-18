@@ -1,4 +1,4 @@
-name: caglan_working
+name: caglan
 max_trials: 5
 epochs: 1
 buffer_size: 35000
@@ -7,12 +7,9 @@ image_size: !!python/tuple [64, 64, 3]
 unit: 64
 generator_layer_iterator:
   - 3
-  - 4
-  - 5
 discriminator_layer_iterator:
   - 3
   - 4
-  - 5
 kernel:
   - 3
   - 5

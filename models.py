@@ -1,10 +1,8 @@
-from abc import abstractmethod
-from typing import Any
 from keras import *
 import tensorflow as tf
-from tensorflow.python.data.experimental.ops.data_service_ops import distribute
 
-from utils import Params
+from mlp.configs import Params
+from mlp.logger import log
 
 cross_entropy = losses.BinaryCrossentropy(from_logits=True)
 generator_optimizer = optimizers.Adam(1e-4)
@@ -81,6 +79,7 @@ class Generator:
                 activation="tanh"
             )
         )
+        log(log.info, self.model.summary())
 
 
 class Discriminator:
@@ -133,3 +132,4 @@ class Discriminator:
             self.l_relu_dropout()
         self.model.add(layers.Flatten())
         self.model.add(layers.Dense(1))
+        log(log.info, self.model.summary())

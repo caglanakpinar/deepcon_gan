@@ -1,19 +1,17 @@
-from abc import abstractmethod
-
 import keras
 import tensorflow as tf
 from keras import *
 import time
 from IPython import display
 import matplotlib.pyplot as plt
-import keras_tuner
 from keras_tuner import HyperParameters, RandomSearch
 
 from utils import Paths, Params
 from models import Generator, cross_entropy, Discriminator
+from mlp import BaseModel, BaseHyperModel, log
 
 
-class DCGAN(Paths):
+class DCGAN(BaseModel, Paths):
     def __init__(
         self,
         params: Params
@@ -88,7 +86,7 @@ class DCGAN(Paths):
                 # Save the model every x epochs - it is in params.yaml
                 if (epoch + 1) % self.checkpoint_save_epoch == 0:
                     self.checkpoint.save(file_prefix=self.checkpoint_prefix_directory(self.name))
-                print('Time for epoch {} is {} sec'.format(epoch + 1, time.time() - start))
+                log(log.info, 'Time for epoch {} is {} sec'.format(epoch + 1, time.time() - start))
                 self.generate_and_save_images(
                     epoch + 1,
                     self.seed,
@@ -103,47 +101,9 @@ class DCGAN(Paths):
         plt.imshow(((predictions[0].numpy() * 127.5) + 127.5).astype(int))
         plt.axis('off')
 
-        plt.savefig(self.create_train_epoch_image_save(self.name) / 'image_at_epoch_{:04d}.png'.format(epoch))
+        plt.savefig(self.checkpoint_prefix_directory(self.name) / 'image_at_epoch_{:04d}.png'.format(epoch))
         if show:
             plt.show()
-
-
-class BaseHyperModel(keras_tuner.HyperModel, Paths):
-    temp_model = None
-    temp_train_args: Params = None
-    temp_hyper_params: Params = None
-    search_params: Params = None
-
-    @staticmethod
-    def get_hyper_parameters():
-        return HyperParameters()
-
-    def set_model(self, model):
-        setattr(self, 'temp_model', model)
-
-    def set_train_params(self, args):
-        setattr(self, 'temp_train_args', args)
-
-    def set_hyper_params(self, hyper_params):
-        setattr(self, 'temp_hyper_params', hyper_params)
-
-    @abstractmethod
-    def build(self, hp: HyperParameters):
-        NotImplementedError()
-
-    @abstractmethod
-    def fit(self, fp, model: keras.Model, **kwargs):
-        NotImplementedError()
-
-    def random_search(self, model: keras_tuner.HyperModel, x, y, validation_data, max_trials):
-        tuner = RandomSearch(
-            model,
-            objective='loss',
-            max_trials=max_trials,
-            project_dir=self.parent_dir / self.tuning_project_dir,
-        )
-        tuner.search(x=x, y=x, validation_data=validation_data)
-        self.temp_train_args.store_params(tuner.get_best_hyperparameters()[0].values)
 
 
 class HyperDCGAN(BaseHyperModel):
@@ -164,7 +124,9 @@ class HyperDCGAN(BaseHyperModel):
         return keras.Model()
 
     def fit(self, fp, model: keras.Model, **kwargs):
-        _model = self.temp_model(self.search_params)
+        _model = self.temp_model(
+            self.search_params
+        )
         _model.train(train_dataset=kwargs['x'], val_dataset=kwargs['validation_data'], tunable=True)
         return {
             'loss': _model.get_best_epoch_loss()
