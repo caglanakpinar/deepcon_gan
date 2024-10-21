@@ -8,6 +8,7 @@ from mlp import Paths, Params, BaseData, log
 
 class CapturingImages(BaseData, Paths):
     def __init__(self, params: Params):
+        self.params = params
         self.batch_size = params.get("batch_size")
         self.image_size = params.get("image_size")
         self.buffer_size = params.get("buffer_size")
