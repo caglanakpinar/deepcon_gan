@@ -6,7 +6,6 @@ from tensorflow import image, data
 from mlp import Paths, Params, BaseData, log
 
 
-
 class CapturingImages(BaseData, Paths):
     def __init__(self, params: Params):
         self.batch_size = params.get("batch_size")

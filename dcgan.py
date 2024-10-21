@@ -70,10 +70,10 @@ class DCGAN(BaseModel, Paths):
         self.generator_optimizer.apply_gradients(zip(gradients_of_generator, self.generator.trainable_variables))
         self.discriminator_optimizer.apply_gradients(zip(gradients_of_discriminator, self.discriminator.trainable_variables))
 
-    def train(self, train_dataset: tf.data.Dataset, val_dataset: tf.data.Dataset = None, tunable=False):
+    def train(self, dataset: tf.data.Dataset, val_dataset: tf.data.Dataset = None, tunable=False):
         for epoch in range(self.epochs):
             start = time.time()
-            for image_batch in train_dataset:
+            for image_batch in dataset:
                 self.train_step(image_batch)
             if tunable:
                 for images in val_dataset:
@@ -127,7 +127,7 @@ class HyperDCGAN(BaseHyperModel):
         _model = self.temp_model(
             self.search_params
         )
-        _model.train(train_dataset=kwargs['x'], val_dataset=kwargs['validation_data'], tunable=True)
+        _model.train(dataset=kwargs['x'], val_dataset=kwargs['x'], tunable=True)
         return {
             'loss': _model.get_best_epoch_loss()
         }
